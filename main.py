@@ -23,7 +23,7 @@ def load_data():
         errors="coerce"
     )
 
-    # 장르에 여러 장르가 있으면 첫 번째 장르만 사용
+    # 여러 장르가 있으면 첫 번째 장르만 사용
     df["genre"] = (
         df["genre"]
         .fillna("미분류")
@@ -50,7 +50,7 @@ def load_data():
 
 try:
     data = load_data()
-except Exception as e:
+except Exception:
     st.error("데이터를 불러오는 중 오류가 발생했습니다.")
     st.stop()
 
@@ -69,7 +69,7 @@ genre_counts = (
 
 genre_counts.columns = ["장르", "영화 편수"]
 
-fig = px.pie(
+fig1 = px.pie(
     genre_counts,
     names="장르",
     values="영화 편수",
@@ -77,7 +77,7 @@ fig = px.pie(
     title="장르별 영화 편수"
 )
 
-fig.update_traces(
+fig1.update_traces(
     textposition="inside",
     textinfo="percent",
     hovertemplate=(
@@ -87,20 +87,67 @@ fig.update_traces(
     )
 )
 
-fig.update_layout(
+fig1.update_layout(
     showlegend=True,
     legend_title_text="장르"
 )
 
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig1, use_container_width=True)
+
+st.subheader("이 그래프로 알 수 있는 것")
+
+st.text_area(
+    "그래프 1 설명",
+    placeholder="이 그래프로 알 수 있는 내용을 한 문장으로 써 보세요.",
+    key="graph1_note",
+    height=80,
+    label_visibility="collapsed"
+)
 
 st.markdown("---")
 
+
+# --------------------------------------------------
+# 그래프 2. 장르별 영화 총 관객 트리맵
+# --------------------------------------------------
+
+st.header("그래프 2. 장르별 영화 총 관객 트리맵")
+
+# 트리맵에 사용할 데이터
+treemap_data = data[
+    ["genre", "movieNm", "total_audi"]
+].dropna(subset=["genre", "movieNm", "total_audi"]).copy()
+
+# 총 관객이 0 이하인 데이터는 트리맵 크기로 사용할 수 없으므로 제외
+treemap_data = treemap_data[treemap_data["total_audi"] > 0]
+
+fig2 = px.treemap(
+    treemap_data,
+    path=["genre", "movieNm"],
+    values="total_audi",
+    title="장르별 영화 총 관객",
+)
+
+fig2.update_traces(
+    hovertemplate=(
+        "<b>%{label}</b><br>"
+        "총 관객: %{value:,.0f}명"
+        "<extra></extra>"
+    )
+)
+
+fig2.update_layout(
+    margin=dict(t=50, l=10, r=10, b=10)
+)
+
+st.plotly_chart(fig2, use_container_width=True)
+
 st.subheader("이 그래프로 알 수 있는 것")
+
 st.text_area(
-    "직접 작성하세요.",
+    "그래프 2 설명",
     placeholder="이 그래프로 알 수 있는 내용을 한 문장으로 써 보세요.",
-    key="graph1_note",
+    key="graph2_note",
     height=80,
     label_visibility="collapsed"
 )
