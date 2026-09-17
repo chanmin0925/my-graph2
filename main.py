@@ -249,7 +249,6 @@ scatter_data = data[
     subset=["movieNm", "genre", "first_scrn", "total_audi"]
 ).copy()
 
-# 음수 값 제외
 scatter_data = scatter_data[
     (scatter_data["first_scrn"] >= 0) &
     (scatter_data["total_audi"] >= 0)
@@ -294,6 +293,78 @@ st.text_area(
     "그래프 4 설명",
     placeholder="이 그래프로 알 수 있는 내용을 한 문장으로 써 보세요.",
     key="graph4_note",
+    height=80,
+    label_visibility="collapsed"
+)
+
+st.markdown("---")
+
+
+# --------------------------------------------------
+# 그래프 5. 장르별 총 관객 상자 그림
+# --------------------------------------------------
+
+st.header("그래프 5. 장르별 총 관객 분포")
+
+boxplot_data = data[
+    ["movieNm", "genre", "total_audi"]
+].dropna(
+    subset=["movieNm", "genre", "total_audi"]
+).copy()
+
+boxplot_data = boxplot_data[
+    boxplot_data["total_audi"] >= 0
+]
+
+# 영화가 10편 이상인 장르만 선택
+genre_movie_counts = boxplot_data["genre"].value_counts()
+
+selected_genres = genre_movie_counts[
+    genre_movie_counts >= 10
+].index
+
+boxplot_data = boxplot_data[
+    boxplot_data["genre"].isin(selected_genres)
+]
+
+fig5 = px.box(
+    boxplot_data,
+    x="genre",
+    y="total_audi",
+    points="outliers",
+    hover_name="movieNm",
+    hover_data={
+        "genre": False,
+        "total_audi": ":,"
+    },
+    labels={
+        "genre": "장르",
+        "total_audi": "총 관객"
+    },
+    title="영화가 10편 이상인 장르의 총 관객 분포"
+)
+
+fig5.update_traces(
+    hovertemplate=(
+        "<b>%{hovertext}</b><br>"
+        "총 관객: %{y:,.0f}명"
+        "<extra></extra>"
+    )
+)
+
+fig5.update_layout(
+    xaxis_title="장르",
+    yaxis_title="총 관객"
+)
+
+st.plotly_chart(fig5, use_container_width=True)
+
+st.subheader("이 그래프로 알 수 있는 것")
+
+st.text_area(
+    "그래프 5 설명",
+    placeholder="이 그래프로 알 수 있는 내용을 한 문장으로 써 보세요.",
+    key="graph5_note",
     height=80,
     label_visibility="collapsed"
 )
