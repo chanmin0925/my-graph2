@@ -113,19 +113,17 @@ st.markdown("---")
 
 st.header("그래프 2. 장르별 영화 총 관객 트리맵")
 
-# 트리맵에 사용할 데이터
 treemap_data = data[
     ["genre", "movieNm", "total_audi"]
 ].dropna(subset=["genre", "movieNm", "total_audi"]).copy()
 
-# 총 관객이 0 이하인 데이터는 트리맵 크기로 사용할 수 없으므로 제외
 treemap_data = treemap_data[treemap_data["total_audi"] > 0]
 
 fig2 = px.treemap(
     treemap_data,
     path=["genre", "movieNm"],
     values="total_audi",
-    title="장르별 영화 총 관객",
+    title="장르별 영화 총 관객"
 )
 
 fig2.update_traces(
@@ -148,6 +146,99 @@ st.text_area(
     "그래프 2 설명",
     placeholder="이 그래프로 알 수 있는 내용을 한 문장으로 써 보세요.",
     key="graph2_note",
+    height=80,
+    label_visibility="collapsed"
+)
+
+st.markdown("---")
+
+
+# --------------------------------------------------
+# 그래프 3. 총 관객 히스토그램
+# --------------------------------------------------
+
+st.header("그래프 3. 총 관객 분포")
+
+histogram_data = data[
+    ["movieNm", "total_audi"]
+].dropna(subset=["movieNm", "total_audi"]).copy()
+
+histogram_data = histogram_data[histogram_data["total_audi"] >= 0]
+
+fig3 = px.histogram(
+    histogram_data,
+    x="total_audi",
+    nbins=20,
+    title="영화별 총 관객 분포",
+    labels={
+        "total_audi": "총 관객",
+        "count": "영화 편수"
+    }
+)
+
+fig3.update_traces(
+    hovertemplate=(
+        "총 관객 구간: %{x}<br>"
+        "영화 편수: %{y}편"
+        "<extra></extra>"
+    )
+)
+
+fig3.update_layout(
+    xaxis_title="총 관객",
+    yaxis_title="영화 편수"
+)
+
+st.plotly_chart(fig3, use_container_width=True)
+
+
+# 대부분의 영화가 몰려 있는 구간 계산
+q1 = histogram_data["total_audi"].quantile(0.25)
+q3 = histogram_data["total_audi"].quantile(0.75)
+
+most_movies_min = histogram_data["total_audi"].min()
+most_movies_max = histogram_data["total_audi"].max()
+
+# 히스토그램의 실제 구간을 기준으로 가장 많은 구간 계산
+counts, bin_edges = pd.cut(
+    histogram_data["total_audi"],
+    bins=20,
+    include_lowest=True,
+    retbins=True
+)
+
+bin_counts = counts.value_counts().sort_index()
+
+most_common_bin = bin_counts.idxmax()
+
+bin_start = most_common_bin.left
+bin_end = most_common_bin.right
+
+# 총 관객이 가장 많은 영화
+top_movie = histogram_data.loc[
+    histogram_data["total_audi"].idxmax()
+]
+
+top_movie_name = top_movie["movieNm"]
+top_movie_audi = int(top_movie["total_audi"])
+
+
+st.markdown(
+    f"""
+**대부분의 영화가 몰려 있는 구간:**  
+총 관객 **{bin_start:,.0f}명 ~ {bin_end:,.0f}명** 구간에 가장 많은 영화가 몰려 있습니다.
+
+**가장 관객이 많은 영화:**  
+**{top_movie_name}** — 총 관객 **{top_movie_audi:,.0f}명**
+"""
+)
+
+st.subheader("이 그래프로 알 수 있는 것")
+
+st.text_area(
+    "그래프 3 설명",
+    placeholder="이 그래프로 알 수 있는 내용을 한 문장으로 써 보세요.",
+    key="graph3_note",
     height=80,
     label_visibility="collapsed"
 )
