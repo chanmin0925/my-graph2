@@ -31,6 +31,15 @@ def load_data():
         .str.strip()
     )
 
+    df["nation"] = (
+        df["nation"]
+        .fillna("미분류")
+        .astype(str)
+        .str.split("|")
+        .str[0]
+        .str.strip()
+    )
+
     numeric_columns = [
         "first_scrn",
         "first_show",
@@ -349,14 +358,6 @@ fig6.update_traces(
     marker=dict(
         opacity=0.7,
         line=dict(width=0.5)
-    ),
-    hovertemplate=(
-        "<b>%{hovertext}</b>"
-        "<br>개봉일 스크린수: %{x:,.0f}"
-        "<br>총 관객: %{y:,.0f}명"
-        "<br>개봉 첫 주 관객: %{marker.size:,.0f}명"
-        "<br>장르: %{customdata[3]}"
-        "<extra></extra>"
     )
 )
 
@@ -372,6 +373,54 @@ st.subheader("이 그래프로 알 수 있는 것")
 st.text_area(
     "",
     key="graph6_note",
+    height=80,
+    label_visibility="collapsed"
+)
+
+st.divider()
+
+
+# 그래프 7
+st.header("그래프 7. 제작 국가에서 장르로 내려가는 선버스트 그래프")
+
+sunburst_data = data[
+    ["nation", "genre"]
+].dropna()
+
+sunburst_data = (
+    sunburst_data
+    .groupby(["nation", "genre"])
+    .size()
+    .reset_index(name="영화 편수")
+)
+
+fig7 = px.sunburst(
+    sunburst_data,
+    path=["nation", "genre"],
+    values="영화 편수",
+    title="제작 국가 → 장르별 영화 편수",
+    labels={
+        "nation": "제작 국가",
+        "genre": "장르",
+        "영화 편수": "영화 편수"
+    }
+)
+
+fig7.update_traces(
+    hovertemplate=(
+        "<b>%{label}</b>"
+        "<br>영화 편수: %{value}편"
+        "<extra></extra>"
+    )
+)
+
+st.plotly_chart(fig7, use_container_width=True)
+
+st.subheader("이 그래프로 알 수 있는 것")
+
+st.text_area(
+    "",
+    key="graph7_note",
     height=80,
     label_visibility="collapsed"
 )
