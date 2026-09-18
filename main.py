@@ -424,3 +424,71 @@ st.text_area(
     height=80,
     label_visibility="collapsed"
 )
+
+st.divider()
+
+
+# 그래프 8
+st.header("그래프 8. 개봉 첫 주 관객과 총 관객의 관계")
+
+graph8_data = data[
+    [
+        "movieNm",
+        "genre",
+        "first_week_audi",
+        "total_audi",
+        "days_in_top10"
+    ]
+].dropna()
+
+graph8_data = graph8_data[
+    (graph8_data["first_week_audi"] >= 0) &
+    (graph8_data["total_audi"] >= 0) &
+    (graph8_data["days_in_top10"] >= 0)
+]
+
+fig8 = px.scatter(
+    graph8_data,
+    x="first_week_audi",
+    y="total_audi",
+    color="genre",
+    size="days_in_top10",
+    size_max=45,
+    hover_name="movieNm",
+    hover_data={
+        "first_week_audi": ":,",
+        "total_audi": ":,",
+        "days_in_top10": ":,",
+        "genre": True
+    },
+    labels={
+        "first_week_audi": "개봉 첫 주 관객",
+        "total_audi": "총 관객",
+        "days_in_top10": "10위권 머문 날수",
+        "genre": "장르"
+    },
+    title="개봉 첫 주 관객과 총 관객의 관계"
+)
+
+fig8.update_traces(
+    marker=dict(
+        opacity=0.7,
+        line=dict(width=0.5)
+    )
+)
+
+fig8.update_layout(
+    xaxis_title="개봉 첫 주 관객",
+    yaxis_title="총 관객"
+)
+
+st.plotly_chart(fig8, use_container_width=True)
+
+st.subheader("이 그래프로 알 수 있는 것")
+
+st.text_area(
+    "",
+    key="graph8_note",
+    height=80,
+    label_visibility="collapsed"
+)
